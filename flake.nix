@@ -29,6 +29,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             bundix
+            bundler
           ];
         };
       }

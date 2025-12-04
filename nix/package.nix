@@ -8,6 +8,7 @@
   formats,
   runCommand,
   makeWrapper,
+  bundix,
 
   # build-time deps
   cacert,
@@ -81,8 +82,16 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     repo = "alaveteli";
     tag = finalAttrs.version;
     hash = "sha256-BrISQjGn+HOm8Dr66fEGo6dluC8TEwz0Fjogc7b24cA=";
+    # hash = "sha256-aguhD9AjaZ9ZWogYHWcLZFoHlVCVgXNENCdc74cFUOc=";
     fetchSubmodules = true;
     leaveDotGit = true;
+    # nativeBuildInputs = [ bundix ];
+    # postFetch = ''
+    #   pushd $out
+    #     # generate gemset.nix
+    #     bundix
+    #   popd
+    # '';
   };
 
   patches = [
@@ -143,6 +152,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # bash
     ''
       runHook preBuild
+
+      bundle config set deployment true
+      bundle config set without "development test"
 
       # redis does not seem to be required to compile assets,
       # but rails expects a database, although it does not seem
@@ -275,8 +287,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         '';
 
     rubyEnv = callPackage ./bundlerEnv.nix {
-      themeGemfile = "${finalAttrs.src}/Gemfile";
-      themeLockfile = "${finalAttrs.src}/Gemfile.lock";
+      # themeGemfile = "${finalAttrs.src}/Gemfile";
+      # themeLockfile = "${finalAttrs.src}/Gemfile.lock";
+      themeGemfile = ../Gemfile;
+      themeLockfile = ../Gemfile.lock;
       themeGemset = ../gemset.nix;
     };
   };
