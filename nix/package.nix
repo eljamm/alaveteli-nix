@@ -16,6 +16,7 @@
   nodejs,
   writeShellScript,
   stdenv,
+  writableTmpDirAsHomeHook,
 
   # build-time deps
   cacert,
@@ -88,17 +89,19 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     owner = "mysociety";
     repo = "alaveteli";
     tag = finalAttrs.version;
-    hash = "sha256-BrISQjGn+HOm8Dr66fEGo6dluC8TEwz0Fjogc7b24cA=";
-    # hash = "sha256-aguhD9AjaZ9ZWogYHWcLZFoHlVCVgXNENCdc74cFUOc=";
+    hash = "sha256-9KS2+uGUAM4xT715eB+/Df83EB4Qibn2nx03SaZWr4U=";
     fetchSubmodules = true;
     leaveDotGit = true;
-    # nativeBuildInputs = [ bundix ];
-    # postFetch = ''
-    #   pushd $out
-    #     # generate gemset.nix
-    #     bundix
-    #   popd
-    # '';
+    nativeBuildInputs = [
+      bundix
+      writableTmpDirAsHomeHook
+    ];
+    postFetch = ''
+      pushd $out
+        # generate gemset.nix
+        bundix
+      popd
+    '';
   };
 
   patches = [
@@ -131,6 +134,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     cacert
     postgresql
     procps
+    writableTmpDirAsHomeHook
     breakpointHook
   ];
 
@@ -301,9 +305,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
       gemfile = "${finalAttrs.src}/Gemfile";
       lockfile = "${finalAttrs.src}/Gemfile.lock";
-      gemset = ../gemset.nix;
+      gemset = "${finalAttrs.src}/gemset.nix";
 
-      gemdir = ../.;
+      gemdir = finalAttrs.src;
 
       # ruby versions that fix the openssl bug: 3.3.10, 3.4.8 (not in nixpkgs yet!)
       ruby = ruby_3_4;
