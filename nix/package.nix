@@ -88,17 +88,17 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     owner = "mysociety";
     repo = "alaveteli";
     tag = finalAttrs.version;
-    # hash = "sha256-BrISQjGn+HOm8Dr66fEGo6dluC8TEwz0Fjogc7b24cA=";
-    hash = "sha256-aguhD9AjaZ9ZWogYHWcLZFoHlVCVgXNENCdc74cFUOc=";
+    hash = "sha256-BrISQjGn+HOm8Dr66fEGo6dluC8TEwz0Fjogc7b24cA=";
+    # hash = "sha256-aguhD9AjaZ9ZWogYHWcLZFoHlVCVgXNENCdc74cFUOc=";
     fetchSubmodules = true;
     leaveDotGit = true;
-    nativeBuildInputs = [ bundix ];
-    postFetch = ''
-      pushd $out
-        # generate gemset.nix
-        bundix
-      popd
-    '';
+    # nativeBuildInputs = [ bundix ];
+    # postFetch = ''
+    #   pushd $out
+    #     # generate gemset.nix
+    #     bundix
+    #   popd
+    # '';
   };
 
   patches = [
@@ -293,15 +293,17 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     rubyEnvOld = callPackage ./bundlerEnv.nix {
       themeGemfile = "${finalAttrs.src}/Gemfile";
       themeLockfile = "${finalAttrs.src}/Gemfile.lock";
-      themeGemset = "${finalAttrs.src}/gemset.nix";
+      themeGemset = ../gemset.nix;
     };
 
     rubyEnv = bundlerEnv {
       name = "gems-for-alaveteli";
-      gemdir = "${finalAttrs.src}";
-      themeGemfile = "${finalAttrs.src}/Gemfile";
-      themeLockfile = "${finalAttrs.src}/Gemfile.lock";
-      themeGemset = "${finalAttrs.src}/gemset.nix";
+
+      gemfile = "${finalAttrs.src}/Gemfile";
+      lockfile = "${finalAttrs.src}/Gemfile.lock";
+      gemset = ../gemset.nix;
+
+      gemdir = ../.;
 
       # ruby versions that fix the openssl bug: 3.3.10, 3.4.8 (not in nixpkgs yet!)
       ruby = ruby_3_4;

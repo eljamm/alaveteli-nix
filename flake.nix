@@ -23,7 +23,7 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
       in
-      {
+      rec {
         packages.alaveteli = pkgs.callPackage ./nix/package.nix { };
         plugins = pkgs.callPackage ./nix/themes { };
         devShells.default = pkgs.mkShell {
@@ -31,6 +31,12 @@
             bundix
             bundler
           ];
+
+          shellHook = ''
+            for file in Gemfile Gemfile.lock; do
+              rsync --archive --copy-links --chmod=D755,F644 "${packages.alaveteli.src}/$file" ./$file
+            done
+          '';
         };
       }
     );
