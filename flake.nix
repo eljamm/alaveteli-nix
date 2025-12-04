@@ -25,8 +25,12 @@
       in
       {
         packages.alaveteli = pkgs.callPackage ./nix/package.nix { };
-
         plugins = pkgs.callPackage ./nix/themes { };
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            bundix
+          ];
+        };
       }
     );
 }
