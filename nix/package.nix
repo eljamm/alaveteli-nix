@@ -3,12 +3,19 @@
   fetchFromGitHub,
   stdenvNoCC,
   callPackage,
-  ruby,
+  ruby_3_4,
   writeText,
   formats,
   runCommand,
   makeWrapper,
   bundix,
+  bundlerEnv,
+  defaultGemConfig,
+  file,
+  zlib,
+  nodejs,
+  writeShellScript,
+  stdenv,
 
   # build-time deps
   cacert,
@@ -81,17 +88,17 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     owner = "mysociety";
     repo = "alaveteli";
     tag = finalAttrs.version;
-    hash = "sha256-BrISQjGn+HOm8Dr66fEGo6dluC8TEwz0Fjogc7b24cA=";
-    # hash = "sha256-aguhD9AjaZ9ZWogYHWcLZFoHlVCVgXNENCdc74cFUOc=";
+    # hash = "sha256-BrISQjGn+HOm8Dr66fEGo6dluC8TEwz0Fjogc7b24cA=";
+    hash = "sha256-aguhD9AjaZ9ZWogYHWcLZFoHlVCVgXNENCdc74cFUOc=";
     fetchSubmodules = true;
     leaveDotGit = true;
-    # nativeBuildInputs = [ bundix ];
-    # postFetch = ''
-    #   pushd $out
-    #     # generate gemset.nix
-    #     bundix
-    #   popd
-    # '';
+    nativeBuildInputs = [ bundix ];
+    postFetch = ''
+      pushd $out
+        # generate gemset.nix
+        bundix
+      popd
+    '';
   };
 
   patches = [
@@ -115,8 +122,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   postPatch =
     # bash
     ''
-      sed -i -e "s|ruby '3.2.[0-9]\+'|ruby '${ruby.version}'|" Gemfile
-      sed -i -e "s|ruby 3.2.[0-9]\+p[0-9]\+|ruby ${ruby.version}|" Gemfile.lock
+      sed -i -e "s|ruby '3.2.[0-9]\+'|ruby '${ruby_3_4.version}'|" Gemfile
+      sed -i -e "s|ruby 3.2.[0-9]\+p[0-9]\+|ruby ${ruby_3_4.version}|" Gemfile.lock
       rm public/views_cache
     '';
 
@@ -141,7 +148,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   # as they are needed for asset precompilation. Without this, the site
   # builds and runs, but the theme CSS is not applied, for instance.
   preBuild =
-    lib.optional (theme.files != null)
+    lib.optionalString (theme.files != null)
       # bash
       ''
         mkdir -p lib/themes/${theme.pname}/
@@ -152,9 +159,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # bash
     ''
       runHook preBuild
-
-      bundle config set deployment true
-      bundle config set without "development test"
 
       # redis does not seem to be required to compile assets,
       # but rails expects a database, although it does not seem
@@ -252,7 +256,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
               --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.runtimeDeps} \
               --set RAILS_ENV production \
               --set RUBYOPT "-r${sslFix} $RUBYOPT" \
-              --chdir '${placeholder "out"}' \
+              --chdir '${finalAttrs.finalPackage}' \
               ${
                 if secretsFile != null then
                   ''
@@ -275,7 +279,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
               --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.runtimeDeps} \
               --set RAILS_ENV production \
               --set RUBYOPT "-r${sslFix} $RUBYOPT" \
-              --chdir '${placeholder "out"}' \
+              --chdir '${finalAttrs.finalPackage}' \
               ${
                 if secretsFile != null then
                   ''
@@ -286,12 +290,64 @@ stdenvNoCC.mkDerivation (finalAttrs: {
               }
         '';
 
-    rubyEnv = callPackage ./bundlerEnv.nix {
-      # themeGemfile = "${finalAttrs.src}/Gemfile";
-      # themeLockfile = "${finalAttrs.src}/Gemfile.lock";
-      themeGemfile = ../Gemfile;
-      themeLockfile = ../Gemfile.lock;
-      themeGemset = ../gemset.nix;
+    rubyEnvOld = callPackage ./bundlerEnv.nix {
+      themeGemfile = "${finalAttrs.src}/Gemfile";
+      themeLockfile = "${finalAttrs.src}/Gemfile.lock";
+      themeGemset = "${finalAttrs.src}/gemset.nix";
+    };
+
+    rubyEnv = bundlerEnv {
+      name = "gems-for-alaveteli";
+      gemdir = "${finalAttrs.src}";
+      themeGemfile = "${finalAttrs.src}/Gemfile";
+      themeLockfile = "${finalAttrs.src}/Gemfile.lock";
+      themeGemset = "${finalAttrs.src}/gemset.nix";
+
+      # ruby versions that fix the openssl bug: 3.3.10, 3.4.8 (not in nixpkgs yet!)
+      ruby = ruby_3_4;
+
+      extraConfigPaths = [ "${./..}/gems" ];
+
+      gemConfig = defaultGemConfig // {
+        mahoro = attrs: { nativeBuildInputs = [ file ]; };
+        xapian-full-alaveteli = attrs: { nativeBuildInputs = [ zlib ]; };
+        libv8-node =
+          attrs:
+          let
+            noopScript = writeShellScript "noop" "exit 0";
+            linkFiles = writeShellScript "link-files" ''
+              cd ../..
+
+              mkdir -p vendor/v8/${stdenv.hostPlatform.system}/libv8/obj/
+              ln -s "${nodejs.libv8}/lib/libv8.a" vendor/v8/${stdenv.hostPlatform.system}/libv8/obj/libv8_monolith.a
+
+              ln -s ${nodejs.libv8}/include vendor/v8/include
+
+              mkdir -p ext/libv8-node
+              echo '--- !ruby/object:Libv8::Node::Location::Vendor {}' >ext/libv8-node/.location.yml
+            '';
+          in
+          {
+            dontBuild = false;
+            postPatch = ''
+              cp ${noopScript} libexec/build-libv8
+              cp ${noopScript} libexec/build-monolith
+              cp ${noopScript} libexec/download-node
+              cp ${noopScript} libexec/extract-node
+              cp ${linkFiles} libexec/inject-libv8
+            '';
+          };
+
+        statistics2 = attrs: {
+          buildFlags = [ "--with-cflags=-Wno-error=implicit-int" ];
+        };
+        syck = attrs: {
+          # buildFlags = [ "--with-cflags=-Wincompatible-pointer-types" ];
+          env.NIX_CFLAGS_COMPILE = toString [
+            "-Wno-error=incompatible-pointer-types"
+          ];
+        };
+      };
     };
   };
 

@@ -16,12 +16,13 @@ let
 in
 pkgs.bundlerEnv {
   name = "gems-for-alaveteli";
-  gemdir = ./..;
+  gemdir = ../.;
+
   # ruby versions that fix the openssl bug: 3.3.10, 3.4.8 (not in nixpkgs yet!)
   ruby = pkgs.ruby_3_4;
 
   env = "RUBYOPT='-r${sslFix} $RUBYOPT'";
-  extraConfigPaths = [ "${./..}/gems" ];
+  extraConfigPaths = [ "${../.}/gems" ];
   lockfile = themeLockfile;
   gemfile = themeGemfile;
   gemset =
