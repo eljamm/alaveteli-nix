@@ -21,6 +21,7 @@
   # build-time deps
   cacert,
   postgresql,
+  postgresqlTestHook,
   procps,
   breakpointHook,
 
@@ -133,6 +134,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   nativeBuildInputs = [
     cacert
     postgresql
+    postgresqlTestHook
     procps
     writableTmpDirAsHomeHook
     breakpointHook
@@ -145,33 +147,48 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     finalAttrs.passthru.rubyEnv.bundler
   ];
 
-  # force production env here, as we don't build the package in development
-  env.RAILS_ENV = "production";
+  env = {
+    # force production env here, as we don't build the package in development
+    RAILS_ENV = "production";
 
-  # copy theme files into the main rails tree before building the package,
-  # as they are needed for asset precompilation. Without this, the site
-  # builds and runs, but the theme CSS is not applied, for instance.
-  preBuild =
-    lib.optionalString (theme.files != null)
-      # bash
-      ''
-        mkdir -p lib/themes/${theme.pname}/
-        cp -R ${theme.files}/* lib/themes/${theme.pname}/
-      '';
+    # redis does not seem to be required to compile assets,
+    # but rails expects a database, although it does not seem
+    # to actually use it
+    DBHOST = "127.0.0.1";
+    PGDATABASE = "alaveteli_production";
+    PGUSER = "alaveteli";
+    postgresqlEnableTCP = 1;
+  };
+
+  postgresqlTestUserOptions = "LOGIN SUPERUSER";
+  postgresqlTestSetupPost = ''
+    export DATABASE_URL="postgresql://$PGUSER@$DBHOST/$PGDATABASE"
+  '';
+
+  preBuild = ''
+    postgresqlStart
+
+    # Don't attempt to start the database again in the check phase.
+    skipHook=postgresqlStart
+    preCheckHooks=( "''${preCheckHooks[@]/''$skipHook}" )
+
+    ${
+      # copy theme files into the main rails tree before building the package,
+      # as they are needed for asset precompilation. Without this, the site
+      # builds and runs, but the theme CSS is not applied, for instance.
+      lib.optionalString (theme.files != null)
+        # bash
+        ''
+          mkdir -p lib/themes/${theme.pname}/
+          cp -R ${theme.files}/* lib/themes/${theme.pname}/
+        ''
+    }
+  '';
 
   buildPhase =
     # bash
     ''
       runHook preBuild
-
-      # redis does not seem to be required to compile assets,
-      # but rails expects a database, although it does not seem
-      # to actually use it
-      mkdir postgres-work
-      initdb -D postgres-work --encoding=utf8
-      pg_ctl start -D postgres-work -o "-k $PWD/postgres-work -h '''"
-      createuser -h $PWD/postgres-work alaveteli -R -S
-      createdb -h $PWD/postgres-work --encoding=utf8 --owner=alaveteli alaveteli_production
 
       # we need to have access to the theme here in config/general.yml, otherwise
       # theme assets can't be found
@@ -181,8 +198,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       pwd
       command -v rake
       echo $PATH
-      rake ALAVETELI_NIX_BUILD_PHASE=1 DATABASE_URL="postgresql:///alaveteli_production?host=$PWD/postgres-work" assets:precompile
-      rake ALAVETELI_NIX_BUILD_PHASE=1 DATABASE_URL="postgresql:///alaveteli_production?host=$PWD/postgres-work" assets:link_non_digest
+      rake ALAVETELI_NIX_BUILD_PHASE=1 assets:precompile
+      rake ALAVETELI_NIX_BUILD_PHASE=1 assets:link_non_digest
 
       rm config/general.yml
       rm config/storage.yml
@@ -192,8 +209,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
       ps aux | grep redis
 
-      pg_ctl stop -D postgres-work -m immediate
-      rm -r postgres-work
+      postgresqlStop
 
       # copy locale translation files
       ${lib.concatStringsSep "\n" (
