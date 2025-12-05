@@ -14,5 +14,7 @@
   nixpkgsLib ? import "${sources.nixpkgs}/lib",
 }:
 {
+  inherit pkgs;
+  lib = nixpkgsLib;
   alaveteli = pkgs.callPackage ./nix/package.nix { };
 }

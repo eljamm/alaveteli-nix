@@ -33,8 +33,12 @@
           ];
 
           shellHook = ''
-            for file in Gemfile Gemfile.lock; do
-              rsync --archive --copy-links --chmod=D755,F644 "${packages.alaveteli.src}/$file" ./$file
+            # not necessary, but convenient
+            for file in Gemfile Gemfile.lock gemset.nix; do
+              FILE_PATH="${packages.alaveteli.src}/$file"
+              if [[ -e "$FILE_PATH" ]]; then
+                rsync --archive --copy-links --chmod=D755,F644 "$FILE_PATH" ./$file
+              fi
             done
           '';
         };
