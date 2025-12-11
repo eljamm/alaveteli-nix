@@ -83,9 +83,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     owner = "mysociety";
     repo = "alaveteli";
     tag = finalAttrs.version;
-    hash = "sha256-9KS2+uGUAM4xT715eB+/Df83EB4Qibn2nx03SaZWr4U=";
+    hash = "sha256-1vfD3Fljq5/IVp9sion/yF/pocliOq6bqXP6aTy+n24=";
     fetchSubmodules = true;
-    leaveDotGit = true;
     nativeBuildInputs = [
       bundix
       writableTmpDirAsHomeHook
