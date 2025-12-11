@@ -70,23 +70,23 @@ let
 
   databaseConfig = settingsFormat.generate "database.yml" cfg.database.settings;
 
-  defaultStorageConfig =
-    lib.mkIf (cfg.settings.storage == null) settingsFormat.generate "storage.yml"
-      {
-        local = {
-          service = "Disk";
-          root = "${cfg.dataDir}/storage/local";
-        };
-        raw_emails = {
-          service = "Disk";
-          # can't use Rails.root here, as it would end up in /nix/store
-          root = "${cfg.dataDir}/storage/raw_emails";
-        };
-        attachments = {
-          service = "Disk";
-          root = "${cfg.dataDir}/storage/attachments";
-        };
+  defaultStorageConfig = settingsFormat.generate "storage.yml" (
+    lib.optionalAttrs ((!cfg.settings ? storage) || cfg.settings.storage == null) {
+      local = {
+        service = "Disk";
+        root = "${cfg.dataDir}/storage/local";
       };
+      raw_emails = {
+        service = "Disk";
+        # can't use Rails.root here, as it would end up in /nix/store
+        root = "${cfg.dataDir}/storage/raw_emails";
+      };
+      attachments = {
+        service = "Disk";
+        root = "${cfg.dataDir}/storage/attachments";
+      };
+    }
+  );
 
   environment = {
     LOGFILE = "${cfg.dataDir}/log/production.log";
