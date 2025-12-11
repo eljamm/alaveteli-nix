@@ -9,13 +9,6 @@
   runCommand,
   makeWrapper,
   bundix,
-  bundlerEnv,
-  defaultGemConfig,
-  file,
-  zlib,
-  nodejs,
-  writeShellScript,
-  stdenv,
   writableTmpDirAsHomeHook,
 
   # build-time deps
@@ -310,8 +303,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
               }
         '';
 
-    # TODO: remove old `bundlerEnv.nix`
-    rubyEnv = callPackage ./bundlerEnv2.nix {
+    rubyEnv = callPackage ./bundlerEnv.nix {
       gemdir = finalAttrs.src;
       extraConfigPaths = [ "${./..}/gems" ];
     };
