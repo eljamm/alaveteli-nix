@@ -179,6 +179,7 @@ in
     ./ssh.nix
 
     (import ./rspamd.nix args)
+    inputs.sops-nix.nixosModules.sops
   ];
 
   options = {

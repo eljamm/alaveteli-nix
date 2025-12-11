@@ -10,6 +10,10 @@
       url = "github:numtide/flake-utils";
       inputs.systems.follows = "systems";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
