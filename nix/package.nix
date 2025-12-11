@@ -307,9 +307,16 @@ stdenvNoCC.mkDerivation (finalAttrs: {
               }
         '';
 
+    extraGems = runCommand "extra-gems" { } ''
+      mkdir -p $out/gems
+      cp -R ${lib.cleanSource ../gems}/* $out/gems
+    '';
+
     rubyEnv = callPackage ./bundlerEnv.nix {
       gemdir = finalAttrs.src;
-      extraConfigPaths = [ "${lib.cleanSource ../.}/gems" ];
+      extraConfigPaths = [
+        "${finalAttrs.passthru.extraGems}/gems"
+      ];
     };
   };
 
