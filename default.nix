@@ -4,17 +4,22 @@
     sha256 = "1j57avx2mqjnhrsgq3xl7ih8v7bdhz1kj3min6364f486ys048bm";
   }),
   flake ? flake-inputs.import-flake { src = ./.; },
-  sources ? flake.inputs,
+  inputs ? flake.inputs,
   system ? builtins.currentSystem,
-  pkgs ? import sources.nixpkgs {
+  pkgs ? import inputs.nixpkgs {
     config = { };
     overlays = [ ];
     inherit system;
   },
-  nixpkgsLib ? import "${sources.nixpkgs}/lib",
+  lib ? import "${inputs.nixpkgs}/lib",
 }:
 {
-  inherit pkgs;
-  lib = nixpkgsLib;
+  inherit
+    flake
+    inputs
+    pkgs
+    lib
+    ;
+
   alaveteli = pkgs.callPackage ./nix/package.nix { };
 }
