@@ -13,7 +13,7 @@
   },
   lib ? import "${inputs.nixpkgs}/lib",
 }:
-{
+lib.makeScope pkgs.newScope (self: {
   inherit
     flake
     inputs
@@ -21,6 +21,8 @@
     lib
     ;
 
-  alaveteli = pkgs.callPackage ./nix/package.nix { };
+  alaveteli = self.callPackage ./nix/package.nix { };
+  alaveteli-wrapped = self.callPackage ./nix/package-wrapped.nix { };
+  themes = self.callPackage ./nix/themes { };
   test = pkgs.testers.runNixOSTest (import ./nix/test.nix { inherit inputs; });
-}
+})
