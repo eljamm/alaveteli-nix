@@ -49,7 +49,6 @@
       ];
 
       services.geoipupdate.enable = false;
-
       services.alaveteli = {
         enable = true;
         domainName = domain;
@@ -62,6 +61,10 @@
         theme = {
           url = "https://github.com/mysociety/alavetelitheme.git";
         };
+        # ! DON'T USE IN PRODUCTION !
+        mailserver.imapPasswdFile = pkgs.writeText "password" ''
+          supersecurepassword
+        '';
       };
 
       networking.extraHosts = ''
