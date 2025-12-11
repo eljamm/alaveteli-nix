@@ -36,8 +36,8 @@
   secretsFile ? null,
   themes ? [ ],
   theme ? {
-    pname = "alavetelitheme";
-    meta.homepage = "https://github.com/mysociety/alavetelitheme.git";
+    name = "alavetelitheme";
+    url = "https://github.com/mysociety/alavetelitheme.git";
     files = null;
     translationFiles = { };
     proTranslationFiles = { };
@@ -56,7 +56,7 @@ let
   settingsFormat = formats.yaml { };
   alaveteliConfig = settingsFormat.generate "general.yml" {
     THEME_URLS = [
-      theme.meta.homepage
+      theme.url
     ];
   };
   storageConfig = settingsFormat.generate "storage.yml" {
@@ -171,8 +171,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       lib.optionalString (theme.files != null)
         # bash
         ''
-          mkdir -p lib/themes/${theme.pname}/
-          cp -R ${theme.files}/* lib/themes/${theme.pname}/
+          mkdir -p lib/themes/${theme.name or theme.package.pname}/
+          cp -R ${theme.files}/* lib/themes/${theme.name or theme.package.pname}/
         ''
     }
   '';

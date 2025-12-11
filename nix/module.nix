@@ -62,14 +62,10 @@ let
   alaveteliPackage = pkgs.callPackage ./package.nix {
     customAlaveteliPatches = cfg.theme.customAlaveteliPatches;
     secretsFile = cfg.settings.secretsFile;
-    themeGemfile = cfg.theme.gemfile;
-    themeLockfile = cfg.theme.gemfileLock;
-    themeGemset = cfg.theme.gemset;
-    themeUrl = cfg.theme.url;
-    themeFiles = cfg.theme.files;
-    themeTranslationFiles = cfg.theme.translationFiles;
-    themeProTranslationFiles = cfg.theme.proTranslationFiles;
-    inherit (cfg) dataDir;
+    # themeGemfile = cfg.theme.gemfile;
+    # themeLockfile = cfg.theme.gemfileLock;
+    # themeGemset = cfg.theme.gemset;
+    inherit (cfg) dataDir theme;
   };
 
   databaseConfig = settingsFormat.generate "database.yml" cfg.database.settings;
@@ -233,7 +229,8 @@ in
           };
         };
         secretsFile = lib.mkOption {
-          type = lib.types.path;
+          type = with lib.types; nullOr path;
+          default = null;
           description = "Path to a file with settings that should go in config/general.yml but not appear in the nix store. They get passed to alaveteli services as env vars, prefix your values with ALAVETELI_.";
         };
         storageConfigFile = lib.mkOption {
