@@ -4,6 +4,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     systems.url = "github:nix-systems/default";
+    nixpkgsrspamd.url = "github:laurents/nixpkgs/fix-rspamd-config-file";
     process-compose-flake.url = "github:Platonic-Systems/process-compose-flake";
     flake-utils = {
       url = "github:numtide/flake-utils";

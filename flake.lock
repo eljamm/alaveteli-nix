@@ -36,6 +36,22 @@
         "type": "github"
       }
     },
+    "nixpkgsrspamd": {
+      "locked": {
+        "lastModified": 1757704226,
+        "narHash": "sha256-CIA0+ZsuZKwg83XvEUWHWGZItVd1/s1aOMpJJLmB378=",
+        "owner": "laurents",
+        "repo": "nixpkgs",
+        "rev": "aca8dc49d2d5a8246e9bcc2a6c8c95b716576036",
+        "type": "github"
+      },
+      "original": {
+        "owner": "laurents",
+        "ref": "fix-rspamd-config-file",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "process-compose-flake": {
       "locked": {
         "lastModified": 1764865386,
@@ -55,6 +71,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
+        "nixpkgsrspamd": "nixpkgsrspamd",
         "process-compose-flake": "process-compose-flake",
         "systems": "systems"
       }

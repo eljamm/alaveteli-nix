@@ -22,4 +22,5 @@
     ;
 
   alaveteli = pkgs.callPackage ./nix/package.nix { };
+  test = pkgs.testers.runNixOSTest (import ./nix/test.nix { inherit inputs; });
 }
