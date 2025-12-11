@@ -11,7 +11,7 @@ self:
   pkgs,
   inputs,
   ...
-}:
+}@args:
 let
   cfg = config.services.alaveteli;
   filterNull = lib.filterAttrs (_: v: v != null);
@@ -170,31 +170,17 @@ let
 in
 {
   imports = [
-    (import ./cron_jobs.nix {
-      inherit config lib pkgs;
-    })
-    (import ./dovecot.nix {
-      inherit config lib pkgs;
-    })
-    (import ./opendkim.nix {
-      inherit config pkgs;
-    })
-    (import ./logrotate.nix {
-      inherit config pkgs;
-    })
-    (import ./postfix.nix {
-      inherit config lib pkgs;
-    })
-    (import ./postgresql.nix {
-      inherit config lib pkgs;
-    })
-    (import ./rspamd.nix {
-      inherit config inputs;
-    })
-    (import ./ssh.nix {
-      inherit config lib pkgs;
-    })
+    ./cron_jobs.nix
+    ./dovecot.nix
+    ./logrotate.nix
+    ./opendkim.nix
+    ./postfix.nix
+    ./postgresql.nix
+    ./ssh.nix
+
+    (import ./rspamd.nix args)
   ];
+
   options = {
     services.alaveteli = {
 
