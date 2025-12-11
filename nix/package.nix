@@ -10,6 +10,7 @@
   makeWrapper,
   bundix,
   writableTmpDirAsHomeHook,
+  symlinkJoin,
 
   # build-time deps
   cacert,
@@ -308,7 +309,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     rubyEnv = callPackage ./bundlerEnv.nix {
       gemdir = finalAttrs.src;
-      extraConfigPaths = [ "${./..}/gems" ];
+      extraConfigPaths = [ "${lib.cleanSource ../.}/gems" ];
     };
   };
 
