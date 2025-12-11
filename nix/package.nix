@@ -314,7 +314,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   dontCheckForBrokenSymlinks = true;
 
   meta = {
-    description = "Alaveteli, a Freedom of Information request system for your jurisdiction";
+    description = "Freedom of Information request system for your jurisdiction";
     homepage = "https://alaveteli.org";
     license = lib.licenses.agpl3Plus;
     platforms = [
