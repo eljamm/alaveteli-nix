@@ -29,7 +29,7 @@ let
     max_age: 10368000
     mx: ${cfg.domainName}
   '';
-  incomingEmailPrefix = config.services.alaveteli.settings.general.INCOMING_EMAIL_PREFIX;
+  incomingEmailPrefix = config.services.alaveteli.settings.general.INCOMING_EMAIL_PREFIX or "";
   incomingEmailPrefixNoPlus = builtins.replaceStrings [ "+" ] [ "" ] incomingEmailPrefix;
 in
 {
