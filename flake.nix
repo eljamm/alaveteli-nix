@@ -28,6 +28,7 @@
       devenv,
       ...
     }@inputs:
+    # attributes that depend on the system (e.g. packages.x86_64-linux)
     flake-utils.lib.eachDefaultSystem (
       system:
       let
@@ -35,7 +36,7 @@
       in
       rec {
         packages.alaveteli = pkgs.callPackage ./nix/package.nix { };
-        plugins = pkgs.callPackage ./nix/themes { };
+        themes = pkgs.callPackage ./nix/themes { };
 
         devShells = {
           dev = pkgs.mkShell {
@@ -84,6 +85,7 @@
         };
       }
     )
+    # system-independant attributes (e.g. nixosModules)
     // flake-utils.lib.eachDefaultSystemPassThrough (system: {
       nixosModules.shell-common = import ./devenv/shell.nix;
     });

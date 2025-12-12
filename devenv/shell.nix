@@ -62,9 +62,11 @@ in
     echo "rails c (no path, just this!)"
     echo "Outgoing emails are here: http://localhost:8025"
 
-    # Secrets
-    secretspec check | awk '/✓ / {print $2}' | xargs -I {} echo "echo export {}=\''${}" > .env
-    eval $(secretspec run -- bash ./.env)
+    # Load all valid secrets
+    if [[ -e secretspec.toml ]]; then
+      secretspec check | awk '/✓ / {print $2}' | xargs -I {} echo "echo export {}=\''${}" > .env
+      eval $(secretspec run -- bash ./.env)
+    fi
   '';
 
   # this is required to build the pg gem on linux
