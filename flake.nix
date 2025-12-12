@@ -37,60 +37,17 @@
         alaveteli = pkgs.callPackage ./nix/package.nix { };
         devPkgs = pkgs.extend (final: prev: { inherit alaveteli; });
       in
-      rec {
+      {
         packages.alaveteli = alaveteli;
         themes = pkgs.callPackage ./nix/themes { };
 
-        devShells = {
-          dev = pkgs.mkShell {
-            packages = with pkgs; [
-              bundix
-              bundler
-            ];
-
-            shellHook = ''
-              # not necessary, but convenient
-              for file in Gemfile Gemfile.lock gemset.nix; do
-                FILE_PATH="${packages.alaveteli.src}/$file"
-                if [[ -e "$FILE_PATH" ]]; then
-                  rsync --archive --copy-links --chmod=D755,F644 "$FILE_PATH" ./$file
-                fi
-              done
-            '';
-          };
-
-          # use this one to develop on core alaveteli, without a theme
-          default = devenv.lib.mkShell {
-            inherit inputs;
-            pkgs = devPkgs;
-            modules = [
-              self.nixosModules.shell-common
-            ];
-          };
-
-          # use this env to develop with some custom theme
-          # This lives here as creating a dev env from a separate folder than
-          # Rails.root is tricky. The theme folder must be linked from, or copied to,
-          # ./lib/themes
-          # Start it with: nix develop --no-pure-eval .#devWithTheme
-          devWithTheme = devenv.lib.mkShell {
-            inherit inputs;
-            pkgs = devPkgs;
-            modules = [
-              {
-                enterShell = "echo Using theme";
-                env = {
-                  FOOENV = "themeON";
-                };
-              }
-              self.nixosModules.shell-common
-            ];
-          };
-        };
+        devShells =
+          (import ./nix/flake/shells.nix { inherit pkgs alaveteli; })
+          // (import ./nix/devenv/shells.nix { inherit self inputs devPkgs; });
       }
     )
     # system-independant attributes (e.g. nixosModules)
     // flake-utils.lib.eachDefaultSystemPassThrough (system: {
-      nixosModules.shell-common = import ./nix/devenv/shell.nix;
+      nixosModules.devenv-shell-common = import ./nix/devenv/modules/shell-common.nix;
     });
 }

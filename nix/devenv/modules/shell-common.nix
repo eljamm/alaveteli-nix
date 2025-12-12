@@ -33,7 +33,7 @@ let
     ];
   });
 
-  deps = import ./deps.nix { inherit pkgs; };
+  deps = import ../deps.nix { inherit pkgs; };
 in
 {
   packages = deps.running ++ deps.developing;
