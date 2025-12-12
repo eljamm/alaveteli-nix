@@ -510,6 +510,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    services.alaveteli.package = pkgs.callPackage ./package-wrapped.nix {
+      alaveteli = alaveteliPackage;
+      themes = pkgs.callPackage ./themes { };
+      inherit databaseConfig;
+    };
 
     assertions = [
       {

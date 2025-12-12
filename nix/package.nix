@@ -228,7 +228,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     mkdir -p $out
     cp -R . $out
-    # rm -rf $out/{config/database.yml,tmp,log}
+    rm -rf $out/{config/database.yml,tmp,log}
 
     # TODO: create in wrapped package?
     # dataDir will be set in the module, and the package gets overriden there

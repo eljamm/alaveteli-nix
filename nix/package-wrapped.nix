@@ -3,6 +3,8 @@
   alaveteli,
   runCommand,
 
+  # Module
+  databaseConfig ? "/dev/null",
   themes ? { },
 }:
 let
@@ -24,6 +26,9 @@ runCommand "alaveteli-wrapped"
     nativeBuildInputs = alaveteli.nativeBuildInputs;
     buildInputs = alaveteli.buildInputs;
     env = alaveteli.passthru.env;
+
+    rails = alaveteli.passthru.rails;
+    rake = alaveteli.passthru.rake;
   }
   ''
     cp -R --no-preserve=mode ${alaveteli} $out
@@ -32,9 +37,15 @@ runCommand "alaveteli-wrapped"
     postgresqlStart
 
     pushd $out
-      # TODO: cp ''${databaseConfig} config/database.yml
+      cp ${databaseConfig} config/database.yml
+
       rake ALAVETELI_NIX_BUILD_PHASE=1 assets:precompile
+      rake ALAVETELI_NIX_BUILD_PHASE=1 assets:link_non_digest
+
+      rm config/database.yml
     popd
 
     postgresqlStop
+
+    chmod +x $out/bin/*
   ''
