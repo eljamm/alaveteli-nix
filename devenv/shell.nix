@@ -64,8 +64,9 @@ in
 
     # Load all valid secrets
     if [[ -e secretspec.toml ]]; then
-      secretspec check | awk '/✓ / {print $2}' | xargs -I {} echo "echo export {}=\''${}" > .env
+      secretspec check 2>&1 | awk '/✓|has default/ {print $2}' | xargs -I {} echo "echo export {}=\''${}" > .env
       eval $(secretspec run -- bash ./.env)
+      echo "Loaded secrets"
     fi
   '';
 
