@@ -166,6 +166,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     preCheckHooks=( "''${preCheckHooks[@]/''$skipHook}" )
 
     ${
+      # TODO: see `./package-wrapped.nix`
       # copy theme files into the main rails tree before building the package,
       # as they are needed for asset precompilation. Without this, the site
       # builds and runs, but the theme CSS is not applied, for instance.
@@ -227,16 +228,16 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     mkdir -p $out/opt
     cp -R . $out/opt
-    rm -rf $out/opt/{config/database.yml,tmp,log}
+    # rm -rf $out/opt/{config/database.yml,tmp,log}
     ln -s $out/opt/bin $out/bin
 
     # TODO: create in wrapped package?
     # dataDir will be set in the module, and the package gets overriden there
-    ln -s ${dataDir}/config/general.yml $out/opt/config/general.yml
-    ln -s ${dataDir}/config/database.yml $out/opt/config/database.yml
-    ln -s ${dataDir}/config/storage.yml $out/opt/config/storage.yml
-    ln -s ${dataDir}/tmp $out/opt/tmp
-    ln -s ${dataDir}/log $out/opt/log
+    # ln -s ${dataDir}/config/general.yml $out/opt/config/general.yml
+    # ln -s ${dataDir}/config/database.yml $out/opt/config/database.yml
+    # ln -s ${dataDir}/config/storage.yml $out/opt/config/storage.yml
+    # ln -s ${dataDir}/tmp $out/opt/tmp
+    # ln -s ${dataDir}/log $out/opt/log
 
     runHook postInstall
   '';
