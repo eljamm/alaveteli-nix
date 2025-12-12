@@ -12,7 +12,7 @@ let
     (lib.concatMapStringsSep "\n" (theme:
     # bash
     ''
-      cp -R ${theme} $out/opt/lib/themes/${theme.pname}
+      cp -R ${theme} $out/lib/themes/${theme.pname}
     ''))
   ];
 in
@@ -31,7 +31,7 @@ runCommand "alaveteli-wrapped"
 
     postgresqlStart
 
-    pushd $out/opt
+    pushd $out
       # TODO: cp ''${databaseConfig} config/database.yml
       rake ALAVETELI_NIX_BUILD_PHASE=1 assets:precompile
     popd
