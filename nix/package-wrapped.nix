@@ -1,15 +1,11 @@
 {
   lib,
   alaveteli,
-  symlinkJoin,
-
-  formats,
+  runCommand,
 
   themes ? { },
 }:
 let
-  settingsFormat = formats.yaml { };
-
   link-themes = lib.pipe themes [
     (lib.filterAttrs (_: v: lib.isDerivation v))
     (lib.attrValues)
@@ -19,63 +15,26 @@ let
       cp -R ${theme} $out/opt/lib/themes/${theme.pname}
     ''))
   ];
-
-  # TODO: get from module
-  filterNull = lib.filterAttrs (_: v: v != null);
-  railsMaxThreads = 3;
-  databaseConfig = settingsFormat.generate "database.yml" {
-    production = lib.mapAttrs (_: v: lib.mkDefault v) (filterNull {
-      adapter = "postgresql";
-      database = "alaveteli";
-      encoding = "utf8";
-      host = "/run/postgresql";
-      password = "<%= begin IO.read('${"/run/keys/alaveteli-dbpassword"}') rescue '' end %>";
-      pool = railsMaxThreads + 2;
-      port = null;
-      template = "template_utf8";
-      timeout = 5000;
-      username = "foi";
-    });
-  };
 in
-symlinkJoin {
-  name = "alaveteli-wrapped";
+runCommand "alaveteli-wrapped"
+  {
+    pname = "alaveteli-wrapped";
+    inherit (alaveteli) version;
 
-  paths = [
-    alaveteli
-  ];
-
-  nativeBuildInputs = alaveteli.nativeBuildInputs;
-  buildInputs = alaveteli.buildInputs;
-  env = {
-    # force production env here, as we don't build the package in development
-    RAILS_ENV = "production";
-
-    # redis does not seem to be required to compile assets,
-    # but rails expects a database, although it does not seem
-    # to actually use it
-    DBHOST = "127.0.0.1";
-    PGDATABASE = "alaveteli_production";
-    PGUSER = "alaveteli";
-    postgresqlEnableTCP = 1;
-  };
-
-  postgresqlTestUserOptions = "LOGIN SUPERUSER";
-  postgresqlTestSetupPost = ''
-    export DATABASE_URL="postgresql://$PGUSER@$DBHOST/$PGDATABASE"
-  '';
-
-  postBuild = ''
+    nativeBuildInputs = alaveteli.nativeBuildInputs;
+    buildInputs = alaveteli.buildInputs;
+    env = alaveteli.passthru.env;
+  }
+  ''
+    cp -R --no-preserve=mode ${alaveteli} $out
     ${link-themes}
 
     postgresqlStart
 
     pushd $out/opt
-      cp ${databaseConfig} config/database.yml
-
+      # TODO: cp ''${databaseConfig} config/database.yml
       rake ALAVETELI_NIX_BUILD_PHASE=1 assets:precompile
     popd
 
     postgresqlStop
-  '';
-}
+  ''

@@ -151,12 +151,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     PGDATABASE = "alaveteli_production";
     PGUSER = "alaveteli";
     postgresqlEnableTCP = 1;
-  };
 
-  postgresqlTestUserOptions = "LOGIN SUPERUSER";
-  postgresqlTestSetupPost = ''
-    export DATABASE_URL="postgresql://$PGUSER@$DBHOST/$PGDATABASE"
-  '';
+    postgresqlTestUserOptions = "LOGIN SUPERUSER";
+    postgresqlTestSetupPost = ''
+      export DATABASE_URL="postgresql://$PGUSER@$DBHOST/$PGDATABASE"
+    '';
+  };
 
   preBuild = ''
     postgresqlStart
@@ -243,6 +243,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   passthru = {
+    inherit (finalAttrs) env;
+
     # binaries needed by alaveteli's rails/rake... at runtime
     runtimeDeps = [
       finalAttrs.passthru.rubyEnv.wrappedRuby
