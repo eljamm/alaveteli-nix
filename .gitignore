@@ -1,7 +1,12 @@
 # Nix
 result*
+.devenv
+.nixos-test-history
 
 # Ruby
 Gemfile
 Gemfile.lock
 gemset.nix
+
+# Secrets
+.env
