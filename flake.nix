@@ -33,9 +33,12 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+
+        alaveteli = pkgs.callPackage ./nix/package.nix { };
+        devPkgs = pkgs.extend (final: prev: { inherit alaveteli; });
       in
       rec {
-        packages.alaveteli = pkgs.callPackage ./nix/package.nix { };
+        packages.alaveteli = alaveteli;
         themes = pkgs.callPackage ./nix/themes { };
 
         devShells = {
@@ -59,7 +62,7 @@
           # use this one to develop on core alaveteli, without a theme
           default = devenv.lib.mkShell {
             inherit inputs;
-            pkgs = pkgs.extend (_: _: { inherit (packages) alaveteli; });
+            pkgs = devPkgs;
             modules = [
               self.nixosModules.shell-common
             ];
@@ -71,7 +74,8 @@
           # ./lib/themes
           # Start it with: nix develop --no-pure-eval .#devWithTheme
           devWithTheme = devenv.lib.mkShell {
-            inherit inputs pkgs;
+            inherit inputs;
+            pkgs = devPkgs;
             modules = [
               {
                 enterShell = "echo Using theme";
@@ -87,6 +91,6 @@
     )
     # system-independant attributes (e.g. nixosModules)
     // flake-utils.lib.eachDefaultSystemPassThrough (system: {
-      nixosModules.shell-common = import ./devenv/shell.nix;
+      nixosModules.shell-common = import ./nix/devenv/shell.nix;
     });
 }
